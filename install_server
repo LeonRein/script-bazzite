@@ -3,6 +3,11 @@ if [ "$(id -u)" -ne 0 ]; then
   echo "Please run with sudo"
   exit 1
 fi
+
+APP_DIR="/opt/virtualhere"
+CONF_DIR="/etc/virtualhere"
+UNIT="/etc/systemd/system/virtualhere.service"
+
 if [ -n "$1" ]; then
   FILENAME="$1"
 else
@@ -21,19 +26,30 @@ else
     FILENAME="vhusbdi386"
   fi
 fi
-wget https://www.virtualhere.com/sites/default/files/usbserver/$FILENAME
-chmod +x $FILENAME
-mv $FILENAME /usr/local/sbin
-mkdir -p /usr/local/etc/virtualhere
+
+URL="https://www.virtualhere.com/sites/default/files/usbserver/$FILENAME"
+if command -v wget >/dev/null 2>&1; then
+  wget "$URL"
+elif command -v curl >/dev/null 2>&1; then
+  curl -fL -o "$FILENAME" "$URL"
+else
+  echo "Error: wget or curl is required"
+  exit 1
+fi
+
+chmod +x "$FILENAME"
+mkdir -p "$APP_DIR" "$CONF_DIR"
+mv "$FILENAME" "$APP_DIR"
+
 if [ -d "/etc/systemd/system" ]; then
-  cat << EOF > /etc/systemd/system/virtualhere.service
+  cat << EOF > "$UNIT"
 [Unit]
 Description=VirtualHere Server
 After=network.target
 
 [Service]
 Type=forking
-ExecStart=/usr/local/sbin/$FILENAME -b -c /usr/local/etc/virtualhere/config.ini
+ExecStart=$APP_DIR/$FILENAME -b -c $CONF_DIR/config.ini
 
 [Install]
 WantedBy=multi-user.target

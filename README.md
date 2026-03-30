@@ -3,6 +3,10 @@
 VirtualHere server install script for `systemd` based systems (e.g Raspberry
 Pi and most modern Linux Distributions).
 
+The installer places the server binary in `/opt/virtualhere` and writes
+configuration in `/etc/virtualhere/config.ini`. This layout is compatible with
+immutable systems such as Bazzite, where `/opt` resolves to `/var/opt`.
+
 ## Installing default version
 
 To install the default server version for your architecture, run the following
